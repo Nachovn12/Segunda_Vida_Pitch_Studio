@@ -1,0 +1,10 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { allocate,elapsedSeconds,formatTime,readStored,shuffle } from './learning.ts';
+import { people,slides } from './content.ts';
+test('la presentación tiene nueve slides y 30 segundos de margen',()=>{assert.deepEqual(slides.map(s=>s.id),[1,2,3,4,5,6,7,8,9]);assert.equal(slides.reduce((n,s)=>n+s.seconds,0),390);});
+test('el sorteo asigna tres slides a cada integrante',()=>{const result=allocate(people,()=>0.4);assert.equal(result.length,9);people.forEach(p=>assert.equal(result.filter(x=>x===p).length,3));});
+test('mezclar no altera el arreglo original',()=>{const input=[1,2,3];assert.deepEqual(shuffle(input,()=>0).sort(),input);assert.deepEqual(input,[1,2,3]);});
+test('el tiempo acumula pausas y conserva el exceso de siete minutos',()=>{assert.equal(elapsedSeconds(30,1000,61000),90);assert.equal(elapsedSeconds(90,null,900000),90);assert.equal(elapsedSeconds(0,1000,500),0);assert.equal(formatTime(425.9),'7:05');assert.equal(formatTime(-1),'0:00');});
+test('un guardado corrupto se recupera sin bloquear la aplicación',()=>{assert.equal(readStored('invalid').version,1);assert.deepEqual(readStored('{"version":5}').progress,{});});
+test('el progreso válido sobrevive a guardar y volver a cargar',()=>{const d=readStored(null);d.progress[people[0]]={'3':{rating:'mastered',reviewedAt:100,attempts:2}};assert.deepEqual(readStored(JSON.stringify(d)),d);const broken=readStored('{"version":1,"progress":{"test":{"1":{"rating":"fake"}}},"sessions":[]}');assert.deepEqual(broken.progress.test,{});});
