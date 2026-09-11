@@ -93,6 +93,7 @@ button:hover {
   padding: 35px 22px 23px;
   z-index: 10;
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
 .brand {
   display: flex;
